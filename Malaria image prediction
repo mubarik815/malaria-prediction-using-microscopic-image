@@ -1,0 +1,39 @@
+
+import streamlit as st
+import numpy as np
+import cv2
+from tensorflow.keras.models import load_model
+from PIL import Image
+
+# Load your trained model
+model = load_model("malaria_model.h5")
+
+# Streamlit app title
+st.title("🦠 Malaria Detection from Microscope Images")
+st.title("Developed by Mubarik Meka ")
+st.write("Upload a microscope image to check if it contains malaria parasites.")
+
+# File uploader
+uploaded_file = st.file_uploader("Choose a microscope image", type=["jpg", "png", "jpeg"])
+
+if uploaded_file is not None:
+    # Show uploaded image
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_container_width=True)
+
+    # Convert image to numpy array
+    img_array = np.array(image)
+
+    # Preprocess: resize, normalize, expand dims
+    img = cv2.resize(img_array, (128, 128))   # adjust size to match your training
+    img = img / 255.0
+    img = np.expand_dims(img, axis=0)
+
+    # Prediction
+    prediction = model.predict(img)
+
+    # Interpret result (adjust mapping if needed)
+    if prediction[0][0] > 0.5:
+        st.success("✅ No Parasite Detected")
+    else:
+        st.error("🦠 Malaria Parasite Detected")
